@@ -11,17 +11,17 @@ colnames(can_dd)=c("id","device_id","total_distance","total_fuel_used","engine_r
 
 #Merge the two datasets
 library(dplyr)
-can_gps=left_join(gps_dd,can_dd,by=c("device_id","gps_event_id"))
+can_gps=left_join(gps_dd,can_dd,by=c("device_id","gps_event_id","gps_utc_time"))
 
 #Remove observations which have NAs in trip_id column
 sum(is.na(can_gps$trip_id))
 can_gps=can_gps[!(is.na(can_gps$trip_id)==T),]
 
-# Inconsistencies and missing values ----
-DD=data.frame(vn=names(can_gps),vc=sapply(can_gps,class),vna=colSums(is.na(can_gps))/nrow(can_gps), vmax=apply(can_gps,2,max,na.rm=T),vmin=apply(can_gps,2,min,na.rm=T))
+# Checking classes and missing values ----
+DD=data.frame(vn=names(can_gps),vc=sapply(can_gps,class),vna=colSums(is.na(can_gps))/nrow(can_gps))
 
 # Remove variables with more than 20% missing values for can_dd
-can_gps=can_dd[,!names(can_gps) %in% DD$vn[DD$vna>=0.2]]
+can_gps=can_gps[,!names(can_gps) %in% DD$vn[DD$vna>=0.2]]
 DD=DD[-which(DD$vna>=0.2),]
 
 names(can_gps)
@@ -36,13 +36,32 @@ can_gps$gps_utc_time[1:5]
 can_gps$gps_utc_time=ymd_hms(can_gps$gps_utc_time)
 class(can_gps$gps_utc_time)
 
-can_gps$gps_utc_time=ymd_hms(can_gps$gps_utc_time)
-class(can_gps$gps_utc_time)
+
+#GPS speed underestimates the exact speed - remove this variable
+can_gps=can_gps[,-(5)]
+DD=DD[-c(5),]
+
 
 #Factor variables
 unique(can_gps$detailed_fuel_low)
-names(can_gps[,-c(12:32)])
+ll=list()
+for (i in 1:ncol(can_gps)){
+  ll[[i]]=unique(can_gps[[i]])
+}
+#(22:43) - factor variables
+names(can_gps[,c(10,22:43)])
+sapply(can_gps[,c(10,22:43)],class)
+DD=DD[-c(10,22:43),]
+DD$vc=sapply(can_gps[,-c(10,22:43)],class)
+DD$vmax=apply(can_gps[,-c(10,22:43)],2,max,na.rm=T)
+DD$vmin=apply(can_gps[,-c(10,22:43)],2,min,na.rm=T)
+DD$vmean=apply(can_gps[,-c(10,22:43)],2,mean,na.rm=T)
 
+
+
+# Have a look at correlation of features without the factor variables
+windows()
+cor.plot(can_gps[,-c(1:2,10,22:43)],numbers=T, las=2) 
 
 
 
@@ -51,8 +70,8 @@ names(can_gps[,-c(12:32)])
 
 
 #Distance indicator
-max(can_dd1$total_distance)#outlier - 4211081
-hist(can_dd1$total_distance,xlim=c(min(can_dd1$total_distance),max(can_dd1$total_distance)))
-quantile(can_dd1$total_distance)
+#max(can_dd1$total_distance)#outlier - 4211081
+#hist(can_dd1$total_distance,xlim=c(min(can_dd1$total_distance),max(can_dd1$total_distance)))
+#quantile(can_dd1$total_distance)
 #0%     25%     50%     75%    100% 
 #2241   49930  105459  225626 4211081 

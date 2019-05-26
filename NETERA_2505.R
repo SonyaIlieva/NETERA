@@ -64,10 +64,37 @@ windows()
 library(psych)
 cor.plot(trip_aggr,numbers=T, las=2, main="Correlation matrix of the aggregated variables",cex.axis=0.8) 
 
+#Dotuk kodat e gore-dolu navarzan, grupiraneto sam go napravila no ne izcqlo mai i moje da go doobsadim. Po-nadilu ima chasti koito moje da izpolzvame po-natatak.
+
 #Group the variebles into the 3 main categories/factors
-aux_economy=trip_aggr[grep("total_idle_fuel_used|total_distance|total_fuel_used|mileage|e.range|total_engine_hours_total_driving_time|fuel_level_percantage",names(trip_aggr))]
-aux_danger=trip_aggr[grep("vehicle_speed|engine_rpm",names(trip_aggr))]
-aux_ecology=trip_aggr[grep("",names(trip_aggr))]
+aux_economy=trip_aggr[grep("total_idle_fuel_used|total_distance|total_fuel_used|mileage|e.range|total_engine_hours_total_driving_time|fuel_level_percantage|total_engine_idle_time|detailed_air_conditioning|detailed_cruise_control|detailed_trunk|doors_driver_door|doors_passenger_door|doors_rear_left_door|doors_rear_right_door|detailed_doors|detailed_reverse_gear|altitude",names(trip_aggr))]
+aux_danger=trip_aggr[grep("vehicle_speed|engine_rpm|detailed_brake_pedal|detailed_handbrake|detailed_break_pedal|detailed_high_beams|detailed_low_beams|detailed_rear_fog_lights|detailed_front_fog_lights|doors_hood|detailed_running_lights",names(trip_aggr))]
+aux_ecology=trip_aggr[grep(".fuel|total_distance|e.range",names(trip_aggr))]
+
+
+#Calculate the weights
+a1=alpha(aux1,check.keys = T)
+a1$keys
+a2=alpha(aux2,check.keys = T)
+a2$keys
+a3=alpha(aux3,check.keys = T)
+a3$keys
+a4=alpha(aux4,check.keys = T)
+a4$keys
+
+a1$total#0.8267967
+a2$total#0.838298
+a3$total#0.8430904
+a4$total#0.6206835
+
+
+ddn2=dd[,names(dd) %in% c("Informative","OK")]
+ddn2$F2=rowSums(dd[,names(dd) %in% c("Courageous","Persuasive","Inspiring")])/3
+ddn2$F1=rowSums(dd[,names(dd) %in% c("Fascinating","Beautiful","Jaw-dropping","Ingenious","Funny")])/5
+ddn2$F3=rowSums(dd[,names(dd) %in% c("Confusing","Longwinded","Unconvincing","Obnoxious")])/4
+
+
+
 
 
 # use 3/4 of the available observations for training purposes
